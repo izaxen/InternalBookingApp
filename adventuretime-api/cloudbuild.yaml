@@ -1,0 +1,60 @@
+substitutions:
+  # Params with default values
+  _PROJECT_NAME:****
+  _PROJECT_REGION: europe-west1
+  _MEMORY: 1Gi
+  _CPU: '1'
+  _COCURRENCY: '60'
+  _TIMEOUT: '20'
+  _TARGET_PROJECT: ****
+  _CONTAINER_REGION: eu.gcr.io
+  _TARGET_ENVIRONMENT: preview
+
+
+  
+steps:
+# Build Container image
+- name: gcr.io/cloud-builders/docker
+  args:
+  - 'build'
+  - '-t'
+  - '${_CONTAINER_REGION}/$PROJECT_ID/${_PROJECT_NAME}:${_TARGET_PROJECT}-${SHORT_SHA}'
+  - '.'
+# Push Container image to Container Repo
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'push'
+  - '${_CONTAINER_REGION}/$PROJECT_ID/${_PROJECT_NAME}:${_TARGET_PROJECT}-${SHORT_SHA}'
+# Tag Container image with Project Id
+- name: 'gcr.io/cloud-builders/gcloud'
+  args:
+  - 'container'
+  - 'images'
+  - 'add-tag'
+  - '${_CONTAINER_REGION}/$PROJECT_ID/${_PROJECT_NAME}:${_TARGET_PROJECT}-${SHORT_SHA}'
+  - '${_CONTAINER_REGION}/$PROJECT_ID/${_PROJECT_NAME}:${_TARGET_PROJECT}-latest'
+# Deploy Container image to Cloud Run
+- name: 'gcr.io/cloud-builders/gcloud'
+  args:
+  - 'run'
+  - 'deploy'
+  - '${_PROJECT_NAME}'
+  - '--image'
+  - '${_CONTAINER_REGION}/$PROJECT_ID/${_PROJECT_NAME}:${_TARGET_PROJECT}-${SHORT_SHA}'
+  - '--region'
+  - '${_PROJECT_REGION}'
+  - '--update-env-vars'
+  - 'GCLOUD_PROJECT=${_TARGET_PROJECT},NODE_ENV=production,BRANCH=${BRANCH_NAME}'
+  - '--memory'
+  - '${_MEMORY}'
+  - '--concurrency'
+  - '${_COCURRENCY}'
+  - '--timeout'
+  - '${_TIMEOUT}'
+  - '--cpu'
+  - '${_CPU}'
+  - '--platform'
+  - 'managed'
+  - '--allow-unauthenticated'
+  - '--project'
+  - '${_TARGET_PROJECT}'
