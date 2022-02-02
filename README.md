@@ -12,10 +12,3 @@ API: Routes with logic part that concerns booking, validation of the bookings an
 Frontend: Bookingpart with mixedbeds, admin page, listallbooking, mypage, major part of Store, setting up connection with GCP
 
 ```
-
-
-### Customize configuration
-```
-Deleted some major part of config files since it contain internal information.
-```
-
